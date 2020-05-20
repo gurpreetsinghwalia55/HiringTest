@@ -6,44 +6,62 @@
         android:layout_height="match_parent"
         tools:context=".MainActivity">
 
-    <ScrollView
+        <TableLayout
+        android:id="@+id/tablelayoutheader"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:layout_height="wrap_content"
+        android:stretchColumns="*"
+
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TableRow
+            android:id="@+id/headerrow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+                <TextView
+                android:id="@+id/header1"
+                android:layout_gravity="center_horizontal"
+                android:text="SERIAL NO."
+                android:textColor="#000000"
+                android:textSize="15dp" />
+
+                <TextView
+                android:id="@+id/header2"
+                android:text="EMAIL ADDRESS"
+                android:textColor="#000000"
+                android:textSize="15dp" />
+
+                <TextView
+                android:id="@+id/header3"
+                android:layout_gravity="center_horizontal"
+                android:layout_span="2"
+                android:text="ACTION"
+                android:textColor="#000000"
+                android:textSize="15dp" />
+        </TableRow>
+    </TableLayout>
+
+    <ScrollView
+        android:id="@+id/scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tablelayoutheader">
+
         <TableLayout
             android:id="@+id/tablelayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:stretchColumns="*">
-            <TableRow
-                android:id="@+id/headerrow"
-                android:layout_height="wrap_content"
-                android:layout_width="match_parent"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp">
-                <TextView
-                    android:id="@+id/header1"
-                    android:text="SERIAL NO."
-                    android:textSize="15dp"
-                    android:textColor="#000000"
-                    android:layout_gravity="center_horizontal"/>
-                <TextView
-                    android:id="@+id/header2"
-                    android:text="EMAIL ADDRESS"
-                    android:textColor="#000000"
-                    android:textSize="15dp"
-                    />
-                <TextView
-                    android:id="@+id/header3"
-                    android:text="ACTION"
-                    android:textSize="15dp"
-                    android:textColor="#000000"
-                    android:layout_span="2"
-                    android:layout_gravity="center_horizontal"/>
-            </TableRow>
-
-
-        </TableLayout>
+            android:stretchColumns="*"
+            android:visibility="gone"></TableLayout>
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

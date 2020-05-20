@@ -7,6 +7,11 @@ public class Email {
     private String tableEmailEmailAddress;
     private boolean tableEmailValidate;
 
+    public Email(String tableEmailEmailAddress, boolean tableEmailValidate) {
+        this.tableEmailEmailAddress = tableEmailEmailAddress;
+        this.tableEmailValidate = tableEmailValidate;
+    }
+
     public String getIdtableEmail() {
         return idtableEmail;
     }

@@ -18,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,11 +38,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     private TableLayout tableLayout;
+    private TableLayout tablelayoutheader;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tableLayout = (TableLayout) findViewById(R.id.tablelayout);
+        tablelayoutheader = findViewById(R.id.tablelayoutheader);
         try {
             getEmailData();
         } catch (IOException e) {
@@ -65,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
                     for(Email email : values){
                         Log.d("Walia", "onResponse: "+email.getIdtableEmail() + " "+email.getTableEmailEmailAddress()+" "+email.isTableEmailValidate());
                     }
+                    populateTable(values);
                 }else
                 {
                     Log.d("Walia", "onResponse: No respones");
@@ -78,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    void populateTable(ArrayList<Email> values) {
+    void populateTable(List<Email> values) {
         TableRow row;
         TextView t1, t2;
         Log.d("Walia", "populateTable: "+values.size());
@@ -92,8 +96,8 @@ public class MainActivity extends AppCompatActivity {
             editbtn.setImageDrawable(getResources().getDrawable(R.drawable.ic_edit_black_24dp));
             dltbtn.setImageDrawable(getResources().getDrawable(R.drawable.ic_delete_black_24dp));
             Integer serial_number = (i + 1);
-            t1.setText("Some random text");
-            t2.setText("Some random text");
+            t1.setText(values.get(i).getIdtableEmail());
+            t2.setText(values.get(i).getTableEmailEmailAddress());
             t1.setGravity(Gravity.CENTER_HORIZONTAL);
             t1.setPadding(32, 8, 16, 8);
             t2.setPadding(0, 8, 0, 8);
@@ -107,11 +111,12 @@ public class MainActivity extends AppCompatActivity {
                     positiveButtonListener();
                 }
             });
+            final TextView finalT1 = t1;
             dltbtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Log.d("Walia", "onClick: deletebutton "+ finalT.getText());
-                    negativeButtonListener();
+                    negativeButtonListener(Integer.parseInt(finalT1.getText().toString()));
                 }
             });
             row.addView(t1);
@@ -119,16 +124,43 @@ public class MainActivity extends AppCompatActivity {
             row.addView(editbtn);
             row.addView(dltbtn);
             tableLayout.addView(row, new TableLayout.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
+            tableLayout.setVisibility(View.VISIBLE);
+            tablelayoutheader.setVisibility(View.VISIBLE);
         }
     }
 
-    private void negativeButtonListener() {
+    private void negativeButtonListener(final int id) {
         new AlertDialog.Builder(MainActivity.this)
                 .setTitle("Delete email")
                 .setMessage("Are you sure you want to delete this email?")
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
+                        Retrofit retrofit = new Retrofit.Builder()
+                                .baseUrl("http://devfrontend.gscmaven.com/wmsweb/webapi/")
+                                .addConverterFactory(GsonConverterFactory.create())
+                                .build();
+                        TestApi testapi = retrofit.create(TestApi.class);
+                        Log.d("Walia", "onClick: id to deleted is = "+id);
+                        Call<Void> call = testapi.deleteEmail(id);
+                        call.enqueue(new Callback<Void>() {
+                            @Override
+                            public void onResponse(Call<Void> call, Response<Void> response) {
+                                Log.d("Walia", "onResponse: deleted succesfully ");
+                                tablelayoutheader.setVisibility(View.GONE);
+                                tableLayout.setVisibility(View.GONE);
+                                try {
+                                    tableLayout.removeAllViews();
+                                    getEmailData();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
 
+                            @Override
+                            public void onFailure(Call<Void> call, Throwable t) {
+                                Log.d("Walia", "onFailure: delete failed!");
+                            }
+                        });
                     }
                 })
                 .setNegativeButton("Cancel", null)
@@ -195,7 +227,36 @@ public class MainActivity extends AppCompatActivity {
         btn_positive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Email email = new Email(et_name.getText().toString(), true);
+                Retrofit retrofit = new Retrofit.Builder()
+                        .baseUrl("http://devfrontend.gscmaven.com/wmsweb/webapi/")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+                TestApi testapi = retrofit.create(TestApi.class);
+                Call<Email> call = testapi.createEmail(email);
+                call.enqueue(new Callback<Email>() {
+                    @Override
+                    public void onResponse(Call<Email> call, Response<Email> response) {
+                        if(response.isSuccessful()){
+                            Log.d("Walia", "onResponse: email created");
+                            tablelayoutheader.setVisibility(View.GONE);
+                            tableLayout.setVisibility(View.GONE);
+                            try {
+                                tableLayout.removeAllViews();
+                                getEmailData();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
 
+                    @Override
+                    public void onFailure(Call<Email> call, Throwable t) {
+                        Log.d("Walia", "onFailure: email not created");
+                        Toast.makeText(MainActivity.this, "Email not created!", Toast.LENGTH_SHORT);
+                    }
+                });
+                dialog.dismiss();
             }
         });
         btn_negative.setOnClickListener(new View.OnClickListener() {
