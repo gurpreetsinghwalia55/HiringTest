@@ -19,19 +19,21 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
-import okhttp3.Call;
-import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     private TableLayout tableLayout;
@@ -40,51 +42,40 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tableLayout = (TableLayout) findViewById(R.id.tablelayout);
-        ArrayList<Email> values = getEmailData();
         try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
+            getEmailData();
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        populateTable(values);
+
     }
 
-    private ArrayList<Email> getEmailData() {
-        final ArrayList<Email> values = new ArrayList<Email>();
-        OkHttpClient client = new OkHttpClient();
-        String url = "http://devfrontend.gscmaven.com/wmsweb/webapi/email/";
-        Request request = new Request.Builder().url(url).build();
-        client.newCall(request).enqueue(new Callback() {
+    private void getEmailData() throws IOException {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://devfrontend.gscmaven.com/wmsweb/webapi/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        TestApi testapi = retrofit.create(TestApi.class);
+        Call<List<Email>> call = testapi.getEmails();
+        call.enqueue(new Callback<List<Email>>() {
             @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Log.d("Walia", "Check your network");
-                e.printStackTrace();
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(Call<List<Email>> call, Response<List<Email>> response) {
                 if(response.isSuccessful()){
-                    String jsonresponse = response.body().string();
-                    try {
-                        JSONArray obj = new JSONArray(jsonresponse);
-                        for (int i = 0; i < obj.length(); i++) {
-                            String result = obj.getString(i);
-                            JSONObject value= new JSONObject(result);
-                            Email currValue = new Email(value.getString("idtableEmail"), value.getString("tableEmailEmailAddress"), value.getBoolean("tableEmailValidate"));
-                            values.add(currValue);
-                        }
-                        for (int i = 0; i < values.size(); i++) {
-                            Log.d("Walia", "id "+values.get(i).id+" email "+values.get(i).email+" validated"+values.get(i).validated);
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-
+                    List<Email> values = response.body();
+                    for(Email email : values){
+                        Log.d("Walia", "onResponse: "+email.getIdtableEmail() + " "+email.getTableEmailEmailAddress()+" "+email.isTableEmailValidate());
                     }
+                }else
+                {
+                    Log.d("Walia", "onResponse: No respones");
                 }
             }
+
+            @Override
+            public void onFailure(Call<List<Email>> call, Throwable t) {
+                Log.d("Walia", "onFailure: check your network");
+            }
         });
-        Log.d("Walia", "doInBackground: "+values.size());
-        return values;
     }
 
     void populateTable(ArrayList<Email> values) {
@@ -101,8 +92,8 @@ public class MainActivity extends AppCompatActivity {
             editbtn.setImageDrawable(getResources().getDrawable(R.drawable.ic_edit_black_24dp));
             dltbtn.setImageDrawable(getResources().getDrawable(R.drawable.ic_delete_black_24dp));
             Integer serial_number = (i + 1);
-            t1.setText(values.get(i).id);
-            t2.setText(values.get(i).email);
+            t1.setText("Some random text");
+            t2.setText("Some random text");
             t1.setGravity(Gravity.CENTER_HORIZONTAL);
             t1.setPadding(32, 8, 16, 8);
             t2.setPadding(0, 8, 0, 8);

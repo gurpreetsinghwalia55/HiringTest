@@ -1,13 +1,21 @@
 package com.example.sampleproject;
 
-public class Email {
-    String id;
-    String email;
-    boolean validated;
+import com.google.gson.annotations.SerializedName;
 
-    Email(String id, String email, boolean validated){
-        this.id = id;
-        this.email = email;
-        this.validated = validated;
+public class Email {
+    private String idtableEmail;
+    private String tableEmailEmailAddress;
+    private boolean tableEmailValidate;
+
+    public String getIdtableEmail() {
+        return idtableEmail;
+    }
+
+    public String getTableEmailEmailAddress() {
+        return tableEmailEmailAddress;
+    }
+
+    public boolean isTableEmailValidate() {
+        return tableEmailValidate;
     }
 }
