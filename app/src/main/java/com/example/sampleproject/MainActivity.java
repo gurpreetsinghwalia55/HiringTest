@@ -7,12 +7,15 @@ import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -39,6 +42,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     private TableLayout tableLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,14 +66,13 @@ public class MainActivity extends AppCompatActivity {
         call.enqueue(new Callback<List<Email>>() {
             @Override
             public void onResponse(Call<List<Email>> call, Response<List<Email>> response) {
-                if(response.isSuccessful()){
+                if (response.isSuccessful()) {
                     List<Email> values = response.body();
-                    for(Email email : values){
-                        Log.d("Walia", "onResponse: "+email.getIdtableEmail() + " "+email.getTableEmailEmailAddress()+" "+email.isTableEmailValidate());
+                    for (Email email : values) {
+                        Log.d("Walia", "onResponse: " + email.getIdtableEmail() + " " + email.getTableEmailEmailAddress() + " " + email.isTableEmailValidate());
                     }
                     populateTable(values);
-                }else
-                {
+                } else {
                     Log.d("Walia", "onResponse: No respones");
                 }
             }
@@ -83,8 +86,8 @@ public class MainActivity extends AppCompatActivity {
 
     void populateTable(List<Email> values) {
         TableRow row;
-        TextView t1, t2 ,t3;
-        Log.d("Walia", "populateTable: "+values.size());
+        TextView t1, t2, t3;
+        Log.d("Walia", "populateTable: " + values.size());
         t1 = new TextView(this);
         t2 = new TextView(this);
         t3 = new TextView(this);
@@ -100,9 +103,12 @@ public class MainActivity extends AppCompatActivity {
         t1.setText("Sno.");
         t2.setText("Email Address");
         t3.setText("Action");
-        t1.setPadding(0,16,0,0);
-        t2.setPadding(0,16,0,0);
-        t3.setPadding(0,16,0,0);
+        t1.setPadding(0, 16, 0, 0);
+        t2.setPadding(0, 16, 0, 0);
+        t3.setPadding(0, 16, 0, 0);
+        t1.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+        t2.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 3.0f));
+        t3.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
         row.addView(t1);
         row.addView(t2);
         row.addView(t3);
@@ -118,18 +124,24 @@ public class MainActivity extends AppCompatActivity {
             dltbtn.setImageDrawable(getResources().getDrawable(R.drawable.ic_delete_black_24dp));
             Integer serial_number = (i + 1);
             t1.setText(values.get(i).getIdtableEmail());
+            t1.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+            t2.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 3.0f));
+            editbtn.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 0.5f));
+            dltbtn.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 0.5f));
             t2.setText(values.get(i).getTableEmailEmailAddress());
             t1.setGravity(Gravity.CENTER_HORIZONTAL);
-            t1.setPadding(32, 8, 16, 8);
+            t1.setPadding(8, 8, 16, 8);
             t2.setPadding(0, 8, 0, 8);
             t1.setTextSize(15);
             t2.setTextSize(15);
+            t2.setMaxLines(1);
+            t2.setEllipsize(TextUtils.TruncateAt.END);
             final TextView finalT = t2;
             final TextView finalT2 = t1;
             editbtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d("Walia", "onClick: editbutton "+ finalT.getText());
+                    Log.d("Walia", "onClick: editbutton " + finalT.getText());
                     positiveButtonListener(finalT2.getText().toString());
                 }
             });
@@ -137,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
             dltbtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d("Walia", "onClick: deletebutton "+ finalT.getText());
+                    Log.d("Walia", "onClick: deletebutton " + finalT.getText());
                     negativeButtonListener(Integer.parseInt(finalT1.getText().toString()));
                 }
             });
@@ -161,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
                                 .addConverterFactory(GsonConverterFactory.create())
                                 .build();
                         TestApi testapi = retrofit.create(TestApi.class);
-                        Log.d("Walia", "onClick: id to deleted is = "+id);
+                        Log.d("Walia", "onClick: id to deleted is = " + id);
                         Call<Void> call = testapi.deleteEmail(id);
                         call.enqueue(new Callback<Void>() {
                             @Override
@@ -192,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.alertdialog_custom_view, null);
-        builder.setCancelable(false);
+        builder.setCancelable(true);
         builder.setView(dialogView);
         Button btn_positive = (Button) dialogView.findViewById(R.id.dialog_positive_btn);
         Button btn_negative = (Button) dialogView.findViewById(R.id.dialog_negative_btn);
@@ -203,6 +215,8 @@ public class MainActivity extends AppCompatActivity {
         btn_positive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(!textChangeListner(et_name))
+                    return;
                 Retrofit retrofit = new Retrofit.Builder()
                         .baseUrl("http://devfrontend.gscmaven.com/wmsweb/webapi/email/")
                         .addConverterFactory(GsonConverterFactory.create())
@@ -214,14 +228,14 @@ public class MainActivity extends AppCompatActivity {
                 call.enqueue(new Callback<Email>() {
                     @Override
                     public void onResponse(Call<Email> call, Response<Email> response) {
-                        if(response.isSuccessful()){
+                        if (response.isSuccessful()) {
                             tableLayout.removeAllViews();
                             try {
                                 getEmailData();
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                        }else{
+                        } else {
                             Log.d("Walia", "onResponse: Email update failed. Please check you network");
                         }
                     }
@@ -272,7 +286,7 @@ public class MainActivity extends AppCompatActivity {
 
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.alertdialog_custom_view, null);
-        builder.setCancelable(false);
+        builder.setCancelable(true);
         builder.setView(dialogView);
         Button btn_positive = (Button) dialogView.findViewById(R.id.dialog_positive_btn);
         Button btn_negative = (Button) dialogView.findViewById(R.id.dialog_negative_btn);
@@ -284,6 +298,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Email email = new Email(et_name.getText().toString(), true);
+                if(!textChangeListner(et_name))
+                    return;
                 Retrofit retrofit = new Retrofit.Builder()
                         .baseUrl("http://devfrontend.gscmaven.com/wmsweb/webapi/")
                         .addConverterFactory(GsonConverterFactory.create())
@@ -293,7 +309,7 @@ public class MainActivity extends AppCompatActivity {
                 call.enqueue(new Callback<Email>() {
                     @Override
                     public void onResponse(Call<Email> call, Response<Email> response) {
-                        if(response.isSuccessful()){
+                        if (response.isSuccessful()) {
                             Log.d("Walia", "onResponse: email created");
                             tableLayout.setVisibility(View.GONE);
                             try {
@@ -323,5 +339,18 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    private boolean textChangeListner(EditText et){
+        String input = et.getText().toString().trim();
+        if(input.isEmpty()){
+            et.setError("Field cannot be empty");
+            return false;
+        } else if(!Patterns.EMAIL_ADDRESS.matcher(input).matches()){
+            et.setError("Please enter a valid email address");
+            return false;
+        }else{
+            et.setError(null);
+            return true;
+        }
+    }
 }
 
