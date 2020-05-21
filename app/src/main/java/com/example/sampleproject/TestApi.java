@@ -7,6 +7,7 @@ import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
 public interface TestApi {
@@ -16,6 +17,9 @@ public interface TestApi {
     @POST("email/")
     Call<Email> createEmail(@Body Email email);
 
-    @DELETE("/email/{idtableEmail}")
+    @DELETE("email/{idtableEmail}")
     Call<Void> deleteEmail(@Path("idtableEmail") int idtableEmail);
+
+    @PUT("{idtableEmail}")
+    Call<Email> updateEmail(@Path("idtableEmail") int idtableEmail, @Body Email email);
 }

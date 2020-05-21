@@ -12,6 +12,10 @@ public class Email {
         this.tableEmailValidate = tableEmailValidate;
     }
 
+    public void setIdtableEmail(String idtableEmail) {
+        this.idtableEmail = idtableEmail;
+    }
+
     public String getIdtableEmail() {
         return idtableEmail;
     }

@@ -4,6 +4,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -38,13 +39,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     private TableLayout tableLayout;
-    private TableLayout tablelayoutheader;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tableLayout = (TableLayout) findViewById(R.id.tablelayout);
-        tablelayoutheader = findViewById(R.id.tablelayoutheader);
         try {
             getEmailData();
         } catch (IOException e) {
@@ -84,8 +83,30 @@ public class MainActivity extends AppCompatActivity {
 
     void populateTable(List<Email> values) {
         TableRow row;
-        TextView t1, t2;
+        TextView t1, t2 ,t3;
         Log.d("Walia", "populateTable: "+values.size());
+        t1 = new TextView(this);
+        t2 = new TextView(this);
+        t3 = new TextView(this);
+        row = new TableRow(this);
+        t1.setTextSize(15);
+        t2.setTextSize(15);
+        t3.setTextSize(15);
+        t1.setGravity(Gravity.CENTER_HORIZONTAL);
+        t3.setGravity(Gravity.CENTER_HORIZONTAL);
+        t1.setTypeface(Typeface.DEFAULT_BOLD);
+        t2.setTypeface(Typeface.DEFAULT_BOLD);
+        t3.setTypeface(Typeface.DEFAULT_BOLD);
+        t1.setText("Sno.");
+        t2.setText("Email Address");
+        t3.setText("Action");
+        t1.setPadding(0,16,0,0);
+        t2.setPadding(0,16,0,0);
+        t3.setPadding(0,16,0,0);
+        row.addView(t1);
+        row.addView(t2);
+        row.addView(t3);
+        tableLayout.addView(row, new TableLayout.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
         ImageView editbtn, dltbtn;
         for (int i = 0; i < values.size(); i++) {
             row = new TableRow(this);
@@ -104,11 +125,12 @@ public class MainActivity extends AppCompatActivity {
             t1.setTextSize(15);
             t2.setTextSize(15);
             final TextView finalT = t2;
+            final TextView finalT2 = t1;
             editbtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Log.d("Walia", "onClick: editbutton "+ finalT.getText());
-                    positiveButtonListener();
+                    positiveButtonListener(finalT2.getText().toString());
                 }
             });
             final TextView finalT1 = t1;
@@ -125,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
             row.addView(dltbtn);
             tableLayout.addView(row, new TableLayout.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
             tableLayout.setVisibility(View.VISIBLE);
-            tablelayoutheader.setVisibility(View.VISIBLE);
         }
     }
 
@@ -146,7 +167,6 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onResponse(Call<Void> call, Response<Void> response) {
                                 Log.d("Walia", "onResponse: deleted succesfully ");
-                                tablelayoutheader.setVisibility(View.GONE);
                                 tableLayout.setVisibility(View.GONE);
                                 try {
                                     tableLayout.removeAllViews();
@@ -168,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void positiveButtonListener() {
+    private void positiveButtonListener(final String id) {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.alertdialog_custom_view, null);
@@ -177,13 +197,41 @@ public class MainActivity extends AppCompatActivity {
         Button btn_positive = (Button) dialogView.findViewById(R.id.dialog_positive_btn);
         Button btn_negative = (Button) dialogView.findViewById(R.id.dialog_negative_btn);
         final EditText et_name = (EditText) dialogView.findViewById(R.id.et_name);
-        et_name.setText("Enter your new email");
+        et_name.setHint("Enter your new email");
         final AlertDialog dialog = builder.create();
 
         btn_positive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Retrofit retrofit = new Retrofit.Builder()
+                        .baseUrl("http://devfrontend.gscmaven.com/wmsweb/webapi/email/")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+                TestApi testapi = retrofit.create(TestApi.class);
+                Email email = new Email(et_name.getText().toString(), true);
+                email.setIdtableEmail(id);
+                Call<Email> call = testapi.updateEmail(Integer.parseInt(id), email);
+                call.enqueue(new Callback<Email>() {
+                    @Override
+                    public void onResponse(Call<Email> call, Response<Email> response) {
+                        if(response.isSuccessful()){
+                            tableLayout.removeAllViews();
+                            try {
+                                getEmailData();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }else{
+                            Log.d("Walia", "onResponse: Email update failed. Please check you network");
+                        }
+                    }
 
+                    @Override
+                    public void onFailure(Call<Email> call, Throwable t) {
+                        Log.d("Walia", "onFailure: email update failed");
+                    }
+                });
+                dialog.dismiss();
             }
         });
         btn_negative.setOnClickListener(new View.OnClickListener() {
@@ -206,6 +254,14 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.add:
                 generateDialog();
+                return (true);
+            case R.id.refresh:
+                try {
+                    tableLayout.removeAllViews();
+                    getEmailData();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 return (true);
         }
         return (super.onOptionsItemSelected(item));
@@ -239,7 +295,6 @@ public class MainActivity extends AppCompatActivity {
                     public void onResponse(Call<Email> call, Response<Email> response) {
                         if(response.isSuccessful()){
                             Log.d("Walia", "onResponse: email created");
-                            tablelayoutheader.setVisibility(View.GONE);
                             tableLayout.setVisibility(View.GONE);
                             try {
                                 tableLayout.removeAllViews();
